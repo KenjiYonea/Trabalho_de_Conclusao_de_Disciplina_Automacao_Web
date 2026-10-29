@@ -1,3 +1,4 @@
+
 name: Cypress E2E Tests
 
 on:
@@ -18,3 +19,22 @@ jobs:
         uses: cypress-io/github-action@v7
         with:
           browser: electron
+
+      - name: Consolidar relatórios Mochawesome
+        if: always()
+        run: |
+          if compgen -G "cypress/reports/mochawesome/*.json" > /dev/null; then
+            npx mochawesome-merge "cypress/reports/mochawesome/*.json" -o cypress/reports/relatorio-final.json
+            npx marge cypress/reports/relatorio-final.json -f relatorio-final -o cypress/reports/html
+          else
+            echo "Nenhum relatório JSON encontrado."
+          fi
+
+      - name: Publicar relatório de execução
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-cypress-mochawesome
+          path: cypress/reports/html/
+          if-no-files-found: warn
+          retention-days: 30

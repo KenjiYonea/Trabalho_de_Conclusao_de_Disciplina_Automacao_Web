@@ -1,12 +1,11 @@
-
 /// <reference types="cypress" />
 
 describe('Automation Exercise', () => {
 
     const usuario = {
-        nome: 'PGATS Aut',
-        email: 'pgtas-aut-test1001@email.com',
-        senha: '123456 '
+        nome: 'Yonea QA',
+        email: 'yonea.qa@email.com',
+        senha: '123@Mudar'
     }
 
     it('Cadastrar um novo usuário com sucesso', () => {
@@ -18,27 +17,66 @@ describe('Automation Exercise', () => {
     })
 
     it('Efetuar login com e-mail e senha corretos', () => {
+
         cy.visit('https://www.automationexercise.com/login')
 
-        preencherLogin(usuario.email, usuario.senha)
-        verificarSeLoginFoiEfetuadoComSucesso()
+        cy.intercept('POST', '**/login').as('login')
+
+        cy.preencherLogin(usuario.email, usuario.senha)
+
+        cy.wait('@login').then(({ response }) => {
+
+            expect(response, 'Resposta do login').to.exist
+
+            cy.log(`Status HTTP: ${response.statusCode}`)
+
+            cy.log(
+                `Redirecionamento: ${response.headers.location || 'Não informado'}`
+            )
+
+            cy.log(
+                `Set-Cookie presente: ${Boolean(response.headers['set-cookie'])}`
+            )
+
+        })
+
+        cy.location('pathname')
+            .should('eq', '/')
+
+        cy.getCookies().then((cookies) => {
+            cy.log(`Quantidade de cookies: ${cookies.length}`)
+        })
+
+        verificarSeLoginFoiEfetuadoComSucesso(usuario.nome)
+
+
     })
 
     it('Efetuar login com senha incorreta', () => {
         cy.visit('https://www.automationexercise.com/login')
 
-        preencherLogin(usuario.email, '4545747441')
+        cy.preencherLogin(usuario.email, '4545747441')
         verificarSeMensagemDeErroFoiExibidaNoLogin()
     })
 
     it('Efetuar logout', () => {
+
         cy.visit('https://www.automationexercise.com/login')
 
-        preencherLogin(usuario.email, usuario.senha)
-        verificarSeLoginFoiEfetuadoComSucesso()
+        cy.intercept('POST', '**/login').as('login')
+
+        cy.preencherLogin(usuario.email, usuario.senha)
+
+        cy.wait('@login')
+            .its('response.statusCode')
+            .should('eq', 302)
+
+        verificarSeLoginFoiEfetuadoComSucesso(usuario.nome)
 
         efetuarLogout()
+
         verificarSeOUsuarioFoiDeslogado()
+
     })
 
     it('Tentar cadastrar usuário com e-mail já cadastrado', () => {
@@ -93,20 +131,15 @@ function verificarSeCadastroFoiEfetuadoComSucesso() {
         .and('contain.text', 'Account Created!')
 }
 
-// LOGIN
+function verificarSeLoginFoiEfetuadoComSucesso(nomeUsuario) {
 
-function preencherLogin(email, senha) {
-    cy.get('[data-qa="login-email"]').type(email)
-    cy.get('[data-qa="login-password"]').type(senha)
-    cy.get('[data-qa="login-button"]').click()
-}
+    cy.contains('Logged in as', { timeout: 15000 })
+        .should('be.visible')
+        .and('contain.text', nomeUsuario)
 
-function verificarSeLoginFoiEfetuadoComSucesso() {
-    cy.get('a[href="/logout"]')
+    cy.get('a[href="/logout"]', { timeout: 15000 })
         .should('be.visible')
 
-    cy.contains('Logged in as')
-        .should('contain.text', 'PGATS Aut')
 }
 
 function verificarSeMensagemDeErroFoiExibidaNoLogin() {

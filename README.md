@@ -1,8 +1,8 @@
 # Automação de Testes Web com Cypress
 
-Projeto de automação de testes E2E (End-to-End) desenvolvido com **Cypress e JavaScript**, utilizando o site [Automation Exercise](https://www.automationexercise.com/) como aplicação de testes.
+Projeto de automação de testes End-to-End (E2E) desenvolvido com **Cypress e JavaScript**, utilizando a aplicação [Automation Exercise](https://www.automationexercise.com/).
 
-O objetivo é praticar a automação de funcionalidades web, aplicando validações de comportamento, organização dos cenários e execução automatizada por integração contínua.
+O projeto foi desenvolvido como parte do **Trabalho de Conclusão de Disciplina da pós-graduação em Automação de Testes de Software**, com o objetivo de automatizar os cenários solicitados, validar comportamentos da aplicação e aplicar boas práticas de testes automatizados.
 
 ## Tecnologias utilizadas
 
@@ -14,28 +14,34 @@ O objetivo é praticar a automação de funcionalidades web, aplicando validaç�
 
 ## Cenários automatizados
 
-Os testes estão organizados por funcionalidade, facilitando a manutenção e a execução independente.
+Os testes estão organizados por funcionalidade, permitindo a execução individual de cada módulo ou da suíte completa.
 
 ### Autenticação — 5 testes
 
-- Cadastro de usuário com sucesso
-- Login com credenciais válidas
-- Login com credenciais inválidas
-- Logout do usuário
-- Tentativa de cadastro com e-mail já existente
+- Cadastrar um novo usuário com sucesso
+- Efetuar login com e-mail e senha corretos
+- Efetuar login com senha incorreta
+- Efetuar logout
+- Tentar cadastrar usuário com e-mail já cadastrado
 
 ### Produtos — 3 testes
 
-- Validar a exibição da página de produtos
+- Deve acessar a página de produtos
 - Pesquisar um produto com sucesso
 - Visualizar os detalhes de um produto
 
-### Carrinho — 2 testes
+### Carrinho e checkout — 4 testes
 
-- Adicionar um produto ao carrinho
-- Remover um produto do carrinho
+- Adicionar um produto ao carrinho com sucesso
+- Remover um produto do carrinho com sucesso
+- Realizar compra com cadastro antes do checkout
+- Realizar compra com login antes do checkout
 
-**Total: 10 cenários automatizados.**
+### Newsletter — 1 teste
+
+- Deve realizar inscrição na newsletter com sucesso
+
+**Total: 13 cenários automatizados.**
 
 ## Estrutura do projeto
 
@@ -47,12 +53,15 @@ automacao-web/
 ├── cypress/
 │   ├── e2e/
 │   │   ├── autenticacao.cy.js
-│   │   ├── produtos.cy.js
-│   │   └── carrinho.cy.js
+│   │   ├── carrinho.cy.js
+│   │   ├── inscricaoNewsletter.cy.js
+│   │   └── produtos.cy.js
 │   ├── fixtures/
 │   └── support/
+│       └── commands.js
 ├── cypress.config.js
 ├── package.json
+├── package-lock.json
 └── README.md
 ```
 
@@ -60,75 +69,98 @@ automacao-web/
 
 **Pré-requisitos:** Node.js e npm instalados.
 
-**1. Clonar o repositório**
+### 1. Clonar o repositório
 
 ```bash
 git clone https://github.com/KenjiYonea/automacao-web-cypress.git
 ```
 
-**2. Acessar a pasta**
+### 2. Acessar a pasta
 
 ```bash
 cd automacao-web-cypress
 ```
 
-**3. Instalar as dependências**
+### 3. Instalar as dependências
 
 ```bash
-npm install
+npm ci
 ```
 
-**4. Executar o Cypress em modo interativo**
+### 4. Executar o Cypress em modo interativo
 
 ```bash
 npx cypress open
 ```
 
-**5. Executar todos os testes em modo headless**
+### 5. Executar todos os testes em modo headless
 
 ```bash
 npx cypress run
 ```
 
-Para executar apenas uma funcionalidade:
+Para executar somente os testes de carrinho:
 
 ```bash
-npx cypress run --spec "cypress/e2e/produtos.cy.js"
+npx cypress run --spec "cypress/e2e/carrinho.cy.js"
 ```
 
-## Integração contínua
+## Integração contínua — GitHub Actions
 
-O projeto utiliza **GitHub Actions** para executar os testes automaticamente a cada push ou pull request na branch `main`.
+O projeto possui um workflow configurado para executar os testes automaticamente em eventos de `push` e `pull_request` na branch `main`.
 
-O workflow realiza o checkout do repositório, instala as dependências necessárias e executa a suíte Cypress no navegador Electron.
+O workflow utiliza:
 
-Os resultados podem ser acompanhados pela aba **Actions** do repositório.
+- GitHub Actions
+- `actions/checkout@v4`
+- `cypress-io/github-action@v7`
+- Navegador Electron
+
+Após a publicação do repositório, os resultados das execuções poderão ser acompanhados pela aba **Actions** do GitHub.
 
 ## Resultado da execução local
 
-Na última execução completa, os 10 testes foram aprovados:
+Na última execução completa da suíte, realizada com `npx cypress run`, todos os testes foram aprovados.
 
 | Funcionalidade | Testes aprovados |
 |---|---:|
 | Autenticação | 5/5 |
+| Carrinho e checkout | 4/4 |
+| Newsletter | 1/1 |
 | Produtos | 3/3 |
-| Carrinho | 2/2 |
-| **Total** | **10/10** |
+| **Total** | **13/13** |
 
-Tempo da execução local: aproximadamente 52 segundos.
+**Resultado:** 13 testes aprovados, 0 falhas.
 
-Os resultados podem variar conforme o ambiente e a disponibilidade da aplicação.
+**Tempo total:** 2 minutos e 53 segundos.
+
+**Ambiente:** Cypress 13.7.3, Electron 118 (headless), Node.js 24.14.1.
+
+Os resultados e os tempos de execução podem variar conforme o ambiente, a disponibilidade da aplicação e os recursos externos carregados pelo site.
+
+## Boas práticas aplicadas
+
+Durante o desenvolvimento foram utilizados:
+
+- Organização dos testes por funcionalidade.
+- Assertions para validar comportamentos e resultados esperados.
+- Seletores CSS e atributos específicos dos elementos.
+- Custom Commands para reutilização de operações.
+- Geração dinâmica de e-mails para cadastros.
+- Preparação do estado do carrinho antes de determinados cenários.
+- Validação de respostas HTTP em fluxos de autenticação.
+- Execução automatizada em modo headless.
 
 ## Considerações
 
-Este projeto faz parte dos meus estudos e da prática de automação de testes web.
+O projeto utiliza uma aplicação pública destinada à prática de automação de testes.
 
-Durante o desenvolvimento, foram trabalhados conceitos como seletores CSS, interação com elementos, assertions, organização dos testes por funcionalidade e execução em pipeline CI.
+Por depender de um ambiente externo, podem ocorrer oscilações de desempenho, atrasos no carregamento das páginas e falhas intermitentes.
 
-A aplicação utilizada é pública e destinada à prática de automação de testes.
+A execução local apresentada neste documento corresponde a uma execução completa bem-sucedida da suíte.
 
 ## Autor
 
 **Bruno Kenji Nishioka Yonea**
 
-[GitHub](https://github.com/KenjiYonea)
+[GitHub — KenjiYonea](https://github.com/KenjiYonea)

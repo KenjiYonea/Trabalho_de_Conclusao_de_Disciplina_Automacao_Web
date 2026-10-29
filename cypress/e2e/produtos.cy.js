@@ -25,7 +25,11 @@ describe('Automation Exercise - Produtos', () => {
             .should('be.visible')
 
         cy.get('.features_items .productinfo')
-            .should('contain.text', 'Blue Top')
+            .should('have.length.greaterThan', 0)
+            .each(($produto) => {
+                cy.wrap($produto)
+                    .should('contain.text', 'Blue Top')
+            })
     });
 
     it('Visualizar os detalhes de um produto', () => {
@@ -48,5 +52,14 @@ describe('Automation Exercise - Produtos', () => {
             .and('contain.text', 'Availability')
             .and('contain.text', 'Condition')
             .and('contain.text', 'Brand')
+
+        cy.get('.product-information span span')
+            .should('be.visible')
+            .and('contain.text', 'Rs.')
+
+        cy.get('.product-information span span')
+            .should('be.visible')
+            .invoke('text')
+            .should('match', /Rs\.\s*\d+/)
     });
 })
