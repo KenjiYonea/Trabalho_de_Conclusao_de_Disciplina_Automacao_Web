@@ -73,7 +73,7 @@ describe('Automation Exercise - Carrinho', () => {
             .should('be.visible')
     })
 
-    it('Realizar compra com cadastro antes do checkout', () => {
+    it('TC-15 - Realizar compra com cadastro antes do checkout', () => {
 
         const usuario = {
             nome: 'QA Teste',
@@ -84,6 +84,10 @@ describe('Automation Exercise - Carrinho', () => {
         cy.visit('https://www.automationexercise.com/login')
 
         cy.cadastrarUsuario(usuario)
+
+        cy.get('[data-qa="account-created"]')
+            .should('be.visible')
+            .and('contain.text', 'Account Created!')
 
         cy.get('[data-qa="continue-button"]')
             .should('be.visible')
@@ -157,47 +161,73 @@ describe('Automation Exercise - Carrinho', () => {
         cy.get('[data-qa="account-deleted"]')
             .should('be.visible')
             .and('contain.text', 'Account Deleted!')
+
+        cy.get('[data-qa="continue-button"]')
+            .should('be.visible')
+            .click()
+
+        cy.location('pathname', { timeout: 15000 })
+            .should('eq', '/')
     })
 
 
-    it('Realizar compra com login antes do checkout', () => {
+
+    it('TC-16 - Realizar compra com login antes do checkout', () => {
 
         const usuario = {
-            nome: 'Yonea QA',
-            email: 'yonea.qa@email.com',
-            senha: '123@Mudar'
+            nome: 'QA Checkout',
+            email: `qa.checkout.${Date.now()}@email.com`,
+            senha: 'Teste@12345'
         }
 
-        // Acessar a página de login
+        // Preparar uma conta exclusiva para o teste
         cy.visit('https://www.automationexercise.com/login')
 
-        cy.intercept('POST', '**/login').as('requisicaoLogin')
+        cy.cadastrarUsuario(usuario)
 
-        // Realizar login
-        cy.preencherLogin(usuario.email, usuario.senha)
+        cy.get('[data-qa="account-created"]')
+            .should('be.visible')
+            .and('contain.text', 'Account Created!')
 
-        // Validar a resposta da requisição
-        cy.wait('@requisicaoLogin')
-            .its('response.statusCode')
-            .should('eq', 302)
+        cy.get('[data-qa="continue-button"]')
+            .should('be.visible')
+            .click()
 
-        // Confirmar redirecionamento após login
+        // Confirmar que o usuário foi autenticado
         cy.location('pathname', { timeout: 15000 })
             .should('eq', '/')
 
-        // Aguardar a interface apresentar o usuário autenticado
-        cy.get('a[href="/logout"]', { timeout: 30000 })
-            .should('be.visible')
-
-        // Validar a identidade do usuário autenticado
         cy.contains('Logged in as', { timeout: 15000 })
             .should('be.visible')
             .and('contain.text', usuario.nome)
 
-        // Garantir que o Blue Top não esteja no carrinho
+        // Encerrar a sessão para testar o login
+        cy.get('a[href="/logout"]', { timeout: 15000 })
+            .should('be.visible')
+            .click()
+
+        cy.location('pathname')
+            .should('eq', '/login')
+
+        // Realizar login antes do checkout
+        cy.intercept('POST', '**/login').as('requisicaoLogin')
+
+        cy.preencherLogin(usuario.email, usuario.senha)
+
+        cy.wait('@requisicaoLogin')
+            .its('response.statusCode')
+            .should('eq', 302)
+
+        cy.location('pathname', { timeout: 15000 })
+            .should('eq', '/')
+
+        cy.contains('Logged in as', { timeout: 15000 })
+            .should('be.visible')
+            .and('contain.text', usuario.nome)
+
+        // Preparar carrinho
         cy.limparCarrinho()
 
-        // Adicionar somente uma unidade do produto
         cy.adicionarProdutoAoCarrinho()
 
         // Prosseguir para checkout
@@ -211,6 +241,9 @@ describe('Automation Exercise - Carrinho', () => {
         // Validar endereço de entrega
         cy.get('#address_delivery')
             .should('be.visible')
+            .and('contain.text', 'Rua Teste, 100')
+            .and('contain.text', 'Los Angeles')
+            .and('contain.text', 'California')
 
         // Validar produto no resumo do pedido
         cy.get('#cart_info #product-1')
@@ -229,9 +262,9 @@ describe('Automation Exercise - Carrinho', () => {
         cy.location('pathname', { timeout: 15000 })
             .should('eq', '/payment')
 
-        // Preencher dados de pagamento
+        // Preencher dados de pagamento de teste
         cy.preencherPagamento({
-            nome: 'Yonea QA',
+            nome: usuario.nome,
             numero: '4111111111111111',
             cvc: '123',
             mes: '12',
@@ -254,7 +287,22 @@ describe('Automation Exercise - Carrinho', () => {
         cy.contains('Congratulations! Your order has been confirmed!')
             .should('be.visible')
 
-    })
+        // Excluir conta criada para este teste
+        cy.get('a[href="/delete_account"]')
+            .should('be.visible')
+            .click()
 
+        cy.get('[data-qa="account-deleted"]')
+            .should('be.visible')
+            .and('contain.text', 'Account Deleted!')
+
+        cy.get('[data-qa="continue-button"]')
+            .should('be.visible')
+            .click()
+
+        cy.location('pathname', { timeout: 15000 })
+            .should('eq', '/')
+
+    })
 
 })

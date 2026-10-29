@@ -8,7 +8,7 @@ describe('Automation Exercise', () => {
         senha: '123@Mudar'
     }
 
-    it('Cadastrar um novo usuário com sucesso', () => {
+    it('TC-01 - Cadastrar um novo usuário com sucesso', () => {
         cy.visit('https://www.automationexercise.com/login')
 
         iniciarCadastro()
@@ -16,50 +16,88 @@ describe('Automation Exercise', () => {
         verificarSeCadastroFoiEfetuadoComSucesso()
     })
 
-    it('Efetuar login com e-mail e senha corretos', () => {
+    it('TC-02 - Efetuar login com e-mail e senha corretos', () => {
 
+        const usuarioTeste = {
+            nome: 'QA Login',
+            email: `qa.login.${Date.now()}@email.com`,
+            senha: 'Teste@12345'
+        }
+
+        // Preparar uma conta exclusiva para o teste
         cy.visit('https://www.automationexercise.com/login')
 
+        cy.cadastrarUsuario(usuarioTeste)
+
+        cy.get('[data-qa="account-created"]')
+            .should('be.visible')
+            .and('contain.text', 'Account Created!')
+
+        cy.get('[data-qa="continue-button"]')
+            .should('be.visible')
+            .click()
+
+        // Confirmar que o cadastro redirecionou para a página inicial
+        cy.location('pathname', { timeout: 15000 })
+            .should('eq', '/')
+
+        // Confirmar que o usuário está autenticado
+        verificarSeLoginFoiEfetuadoComSucesso(usuarioTeste.nome)
+
+        // Encerrar a sessão para testar um novo login
+        cy.get('a[href="/logout"]', { timeout: 15000 })
+            .should('be.visible')
+            .click()
+
+        cy.location('pathname')
+            .should('eq', '/login')
+
+        // Realizar login
         cy.intercept('POST', '**/login').as('login')
 
-        cy.preencherLogin(usuario.email, usuario.senha)
+        cy.preencherLogin(usuarioTeste.email, usuarioTeste.senha)
 
-        cy.wait('@login').then(({ response }) => {
+        // Validar a resposta HTTP
+        cy.wait('@login')
+            .its('response.statusCode')
+            .should('eq', 302)
 
-            expect(response, 'Resposta do login').to.exist
-
-            cy.log(`Status HTTP: ${response.statusCode}`)
-
-            cy.log(
-                `Redirecionamento: ${response.headers.location || 'Não informado'}`
-            )
-
-            cy.log(
-                `Set-Cookie presente: ${Boolean(response.headers['set-cookie'])}`
-            )
-
-        })
-
+        // Validar o redirecionamento
         cy.location('pathname')
             .should('eq', '/')
 
-        cy.getCookies().then((cookies) => {
-            cy.log(`Quantidade de cookies: ${cookies.length}`)
-        })
+        // Validar usuário autenticado
+        verificarSeLoginFoiEfetuadoComSucesso(usuarioTeste.nome)
 
-        verificarSeLoginFoiEfetuadoComSucesso(usuario.nome)
+        // Excluir a conta criada para este teste
+        cy.get('a[href="/delete_account"]')
+            .should('be.visible')
+            .click()
 
+        cy.get('[data-qa="account-deleted"]')
+            .should('be.visible')
+            .and('contain.text', 'Account Deleted!')
+
+        cy.get('[data-qa="continue-button"]')
+            .should('be.visible')
+            .click()
 
     })
 
-    it('Efetuar login com senha incorreta', () => {
+    it('TC-03 - Efetuar login com e-mail e senha incorretos', () => {
+
         cy.visit('https://www.automationexercise.com/login')
 
-        cy.preencherLogin(usuario.email, '4545747441')
+        const emailInvalido = `usuario.inexistente.${Date.now()}@email.com`
+        const senhaInvalida = '4545747441'
+
+        cy.preencherLogin(emailInvalido, senhaInvalida)
+
         verificarSeMensagemDeErroFoiExibidaNoLogin()
+
     })
 
-    it('Efetuar logout', () => {
+    it('TC-04 — Efetuar logout', () => {
 
         cy.visit('https://www.automationexercise.com/login')
 
@@ -79,7 +117,7 @@ describe('Automation Exercise', () => {
 
     })
 
-    it('Tentar cadastrar usuário com e-mail já cadastrado', () => {
+    it('TC-05 - Impedir cadastro com e-mail já cadastrado', () => {
         cy.visit('https://www.automationexercise.com/login')
 
         cy.get('[data-qa="signup-name"]').type(usuario.nome)
@@ -122,6 +160,10 @@ function preencherCadastro() {
     cy.get('[data-qa="zipcode"]').type('123')
     cy.get('[data-qa="mobile_number"]').type('99999999')
 
+    cy.get('#newsletter').check()
+    cy.get('#optin').check()
+    cy.get('[data-qa="address2"]').type('Complemento 101')
+
     cy.get('[data-qa="create-account"]').click()
 }
 
@@ -129,6 +171,24 @@ function verificarSeCadastroFoiEfetuadoComSucesso() {
     cy.get('[data-qa="account-created"]')
         .should('be.visible')
         .and('contain.text', 'Account Created!')
+
+    cy.get('[data-qa="continue-button"]')
+        .should('be.visible')
+        .click()
+
+    verificarSeLoginFoiEfetuadoComSucesso('PGATS Aut')
+
+    cy.get('a[href="/delete_account"]')
+        .should('be.visible')
+        .click()
+
+    cy.get('[data-qa="account-deleted"]')
+        .should('be.visible')
+        .and('contain.text', 'Account Deleted!')
+
+    cy.get('[data-qa="continue-button"]')
+        .should('be.visible')
+        .click()
 }
 
 function verificarSeLoginFoiEfetuadoComSucesso(nomeUsuario) {
@@ -157,6 +217,10 @@ function efetuarLogout() {
 }
 
 function verificarSeOUsuarioFoiDeslogado() {
+
+    cy.location('pathname')
+        .should('eq', '/login')
+
     cy.get('.login-form > h2')
         .should('be.visible')
         .and('contain.text', 'Login to your account')
