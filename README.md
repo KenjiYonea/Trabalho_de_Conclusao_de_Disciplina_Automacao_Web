@@ -1,3 +1,4 @@
+
 # Automação de Testes Web com Cypress
 
 Projeto de automação de testes End-to-End (E2E) desenvolvido com **Cypress e JavaScript**, utilizando a aplicação [Automation Exercise](https://www.automationexercise.com/).
@@ -8,9 +9,10 @@ O projeto foi desenvolvido como parte do **Trabalho de Conclusão de Disciplina 
 
 - JavaScript
 - Cypress 13.7.3
-- Node.js
+- Node.js 24.14.1
 - Git e GitHub
 - GitHub Actions
+- Mochawesome
 
 ## Cenários automatizados
 
@@ -18,30 +20,30 @@ Os testes estão organizados por funcionalidade, permitindo a execução individ
 
 ### Autenticação — 5 testes
 
-- Cadastrar um novo usuário com sucesso
-- Efetuar login com e-mail e senha corretos
-- Efetuar login com senha incorreta
-- Efetuar logout
-- Tentar cadastrar usuário com e-mail já cadastrado
+- TC-01 — Cadastrar um novo usuário com sucesso
+- TC-02 — Efetuar login com e-mail e senha corretos
+- TC-03 — Efetuar login com e-mail e senha incorretos
+- TC-04 — Efetuar logout
+- TC-05 — Impedir cadastro com e-mail já cadastrado
 
 ### Produtos — 3 testes
 
-- Deve acessar a página de produtos
-- Pesquisar um produto com sucesso
-- Visualizar os detalhes de um produto
+- EXTRA — Acessar a página de produtos
+- TC-08 — Visualizar os detalhes de um produto
+- TC-09 — Pesquisar um produto com sucesso
 
 ### Carrinho e checkout — 4 testes
 
-- Adicionar um produto ao carrinho com sucesso
-- Remover um produto do carrinho com sucesso
-- Realizar compra com cadastro antes do checkout
-- Realizar compra com login antes do checkout
+- EXTRA — Adicionar um produto ao carrinho com sucesso
+- EXTRA — Remover um produto do carrinho com sucesso
+- TC-15 — Realizar compra com cadastro antes do checkout
+- TC-16 — Realizar compra com login antes do checkout
 
 ### Newsletter — 1 teste
 
-- Deve realizar inscrição na newsletter com sucesso
+- TC-10 — Realizar inscrição na newsletter com sucesso
 
-**Total: 13 cenários automatizados.**
+**Total: 13 cenários automatizados, sendo 10 obrigatórios e 3 adicionais.**
 
 ## Estrutura do projeto
 
@@ -72,7 +74,7 @@ automacao-web/
 ### 1. Clonar o repositório
 
 ```bash
-git git clone https://github.com/KenjiYonea/Trabalho_de_Conclusao_de_Disciplina_Automacao_Web.git
+git clone https://github.com/KenjiYonea/Trabalho_de_Conclusao_de_Disciplina_Automacao_Web.git
 ```
 
 ### 2. Acessar a pasta
@@ -115,10 +117,14 @@ O workflow utiliza:
 - `actions/checkout@v4`
 - `cypress-io/github-action@v7`
 - Navegador Electron
+- Geração de relatórios Mochawesome
+- Publicação dos relatórios como artefatos
 
-Após a publicação do repositório, os resultados das execuções poderão ser acompanhados pela aba **Actions** do GitHub.
+Os resultados das execuções podem ser acompanhados na aba **Actions** do repositório.
 
-## Última execução no GitHub Actions
+[Consultar execuções no GitHub Actions](https://github.com/KenjiYonea/Trabalho_de_Conclusao_de_Disciplina_Automacao_Web/actions)
+
+### Execução validada no GitHub Actions
 
 - Branch: `main`
 - Commit: `6892ea7`
@@ -128,13 +134,9 @@ Após a publicação do repositório, os resultados das execuções poderão ser
 - Duração total do workflow: 1 minuto e 43 segundos
 - Artefatos gerados: 1
 
-[Consultar execuções no GitHub Actions](https://github.com/KenjiYonea/Trabalho_de_Conclus-o_de_Disciplina_Automa-o_Web/actions)
-
-
-
 ## Resultado da execução local
 
-Na última execução completa da suíte, realizada com `npx cypress run`, todos os testes foram aprovados.
+Na execução completa da suíte, realizada com `npx cypress run`, todos os testes foram aprovados.
 
 | Funcionalidade | Testes aprovados |
 |---|---:|
@@ -152,19 +154,6 @@ Na última execução completa da suíte, realizada com `npx cypress run`, todos
 
 Os resultados e os tempos de execução podem variar conforme o ambiente, a disponibilidade da aplicação e os recursos externos carregados pelo site.
 
-## Boas práticas aplicadas
-
-Durante o desenvolvimento foram utilizados:
-
-- Organização dos testes por funcionalidade.
-- Assertions para validar comportamentos e resultados esperados.
-- Seletores CSS e atributos específicos dos elementos.
-- Custom Commands para reutilização de operações.
-- Geração dinâmica de e-mails para cadastros.
-- Preparação do estado do carrinho antes de determinados cenários.
-- Validação de respostas HTTP em fluxos de autenticação.
-- Execução automatizada em modo headless.
-
 ## Relatórios de testes
 
 O projeto utiliza Mochawesome para gerar relatórios das execuções automatizadas.
@@ -176,21 +165,30 @@ Para consolidar os relatórios e gerar o HTML:
 ```bash
 npx mochawesome-merge "cypress/reports/mochawesome/*.json" -o cypress/reports/relatorio-final.json
 npx marge cypress/reports/relatorio-final.json -f relatorio-final -o cypress/reports/html
+```
 
+O relatório HTML fica disponível em:
 
-Os comandos acima pressupõem que os arquivos JSON do Mochawesome já foram gerados.
+`cypress/reports/html/relatorio-final.html`
 
-### Sobre os caracteres estranhos no terminal
+No GitHub Actions, os relatórios são disponibilizados como artefatos da execução.
 
-A saída mostra `Automa├º├úo` no lugar de `Automação`. Isso normalmente acontece porque o CMD está interpretando a codificação UTF-8 incorretamente.
+## Boas práticas aplicadas
 
-**Não significa necessariamente que o README esteja corrompido.** Confira se os acentos aparecem normalmente no VS Code ou no GitHub.
+Durante o desenvolvimento foram utilizados:
 
-Se quiser visualizar corretamente no CMD, tente:
-
-```cmd
-chcp 65001
-type README.md
+- Organização dos testes por funcionalidade.
+- Assertions para validar comportamentos e resultados esperados.
+- Seletores CSS e atributos específicos dos elementos.
+- Custom Commands para reutilização de operações.
+- Geração dinâmica de e-mails para cadastros.
+- Preparação e limpeza do estado do carrinho.
+- Validação de respostas HTTP em fluxos de autenticação.
+- Validação de mensagens de sucesso e erro.
+- Verificação de redirecionamentos e estados da interface.
+- Esperas condicionais com Cypress, evitando tempos fixos.
+- Execução automatizada em modo headless.
+- Integração contínua com GitHub Actions.
 
 ## Considerações
 
@@ -198,7 +196,7 @@ O projeto utiliza uma aplicação pública destinada à prática de automação 
 
 Por depender de um ambiente externo, podem ocorrer oscilações de desempenho, atrasos no carregamento das páginas e falhas intermitentes.
 
-A execução local apresentada neste documento corresponde a uma execução completa bem-sucedida da suíte.
+A execução local e a execução no GitHub Actions apresentadas neste documento correspondem a execuções completas bem-sucedidas da suíte.
 
 ## Autor
 
